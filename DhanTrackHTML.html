@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DhanTrack – NSE/BSE Portfolio Manager</title>
+  <link rel="stylesheet" href="DhanTrackCSS.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-left">
+      <div class="logo-icon">₹</div>
+      <div class="logo-text">
+        <div class="logo-name">DHAN<span class="accent">TRACK</span></div>
+        <div class="logo-sub">NSE · BSE LIVE PORTFOLIO</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="api-status-pill" id="api-status-pill">
+        <span class="dot pulse" id="status-dot">●</span>
+        <span id="api-label">Initialising…</span>
+        <span class="status-time" id="status-time"></span>
+      </div>
+      <div class="market-pill" id="market-pill">— CHECKING —</div>
+      <div class="storage-pill" id="storage-pill" title="Data auto-saved to browser">💾 Auto-Saved</div>
+      <button class="btn btn-icon" id="btn-settings" title="Settings">⚙</button>
+      <button class="btn btn-export" id="btn-export" title="Export portfolio to JSON file">⬇ Export</button>
+      <button class="btn btn-import" id="btn-import" title="Import portfolio from JSON file">⬆ Import</button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" />
+      <button class="btn btn-primary" id="btn-refresh">↻ REFRESH</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- SUMMARY CARDS -->
+    <section class="summary-grid" id="summary-grid">
+      <div class="card summary-card" id="card-value">
+        <div class="card-top"><span class="card-label">PORTFOLIO VALUE</span><span class="card-icon">📊</span></div>
+        <div class="card-value" id="sv-value">—</div>
+        <div class="card-sub" id="sv-sub">—</div>
+      </div>
+      <div class="card summary-card" id="card-pnl">
+        <div class="card-top"><span class="card-label">TOTAL P&amp;L</span><span class="card-icon">📈</span></div>
+        <div class="card-value" id="sv-pnl">—</div>
+        <div class="card-sub" id="sv-pnl-pct">—</div>
+      </div>
+      <div class="card summary-card" id="card-div">
+        <div class="card-top"><span class="card-label">ANNUAL DIVIDENDS</span><span class="card-icon">💰</span></div>
+        <div class="card-value" id="sv-div">—</div>
+        <div class="card-sub" id="sv-div-sub">—</div>
+      </div>
+      <div class="card summary-card" id="card-pos">
+        <div class="card-top"><span class="card-label">POSITIONS</span><span class="card-icon">🏦</span></div>
+        <div class="card-value" id="sv-pos">—</div>
+        <div class="card-sub" id="sv-pos-sub">—</div>
+      </div>
+    </section>
+
+    <!-- ACCOUNT TABS -->
+    <div class="account-bar" id="account-bar">
+      <button class="tab on" data-acc="all">All Accounts</button>
+      <!-- dynamic account tabs inserted here -->
+      <button class="btn btn-ghost" id="btn-add-account">+ Account</button>
+    </div>
+
+    <!-- FEATURE TABS -->
+    <div class="feature-bar">
+      <button class="tab on" data-tab="portfolio">📊 Holdings</button>
+      <button class="tab" data-tab="dividends">💰 Dividends</button>
+      <button class="tab" data-tab="sectors">🗂 Sectors</button>
+      <div class="tab-spacer"></div>
+      <button class="btn btn-yellow" id="btn-add-holding">+ Add Position</button>
+    </div>
+
+    <!-- PANELS -->
+    <div id="panel-portfolio" class="panel active">
+      <div class="card table-card">
+        <div class="table-wrap">
+          <table id="holdings-table">
+            <thead>
+              <tr>
+                <th>Stock</th><th>Account</th><th>Qty</th>
+                <th>Avg Buy</th><th>LTP</th><th>Source</th>
+                <th>Invested</th><th>Curr Value</th>
+                <th>P&amp;L (₹)</th><th>P&amp;L %</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="holdings-tbody"></tbody>
+            <tfoot id="holdings-tfoot"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-dividends" class="panel">
+      <div class="div-summary-grid">
+        <div class="card summary-card">
+          <div class="card-label">ANNUAL INCOME</div>
+          <div class="card-value" id="div-annual">—</div>
+          <div class="card-sub">Estimated dividend income</div>
+        </div>
+        <div class="card summary-card">
+          <div class="card-label">MONTHLY AVG</div>
+          <div class="card-value accent-yellow" id="div-monthly">—</div>
+          <div class="card-sub">Monthly dividend estimate</div>
+        </div>
+        <div class="card summary-card">
+          <div class="card-label">DIV STOCKS</div>
+          <div class="card-value accent-purple" id="div-count">—</div>
+          <div class="card-sub">Holdings paying dividends</div>
+        </div>
+      </div>
+      <div class="card table-card">
+        <div class="table-header-bar">DIVIDEND TRACKER</div>
+        <div class="table-wrap">
+          <table id="div-table">
+            <thead>
+              <tr>
+                <th>Stock</th><th>Qty</th><th>Div/Share</th>
+                <th>Yield</th><th>Est Annual</th><th>Next Date</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="div-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-sectors" class="panel">
+      <div class="sectors-grid" id="sectors-grid"></div>
+    </div>
+
+    <!-- ACCOUNT SUMMARY (shown in "all" view) -->
+    <div class="acc-summary-grid" id="acc-summary-grid"></div>
+
+  </main>
+
+  <!-- ══ MODALS ══ -->
+
+  <!-- Add Holding -->
+  <div class="overlay" id="modal-add-holding">
+    <div class="modal card">
+      <div class="modal-title">Add Position</div>
+      <div class="modal-sub">Enter NSE symbol (e.g. RELIANCE, TCS, INFY)</div>
+      <div class="form-group">
+        <label>ACCOUNT</label>
+        <select id="new-h-account"></select>
+      </div>
+      <div class="form-group">
+        <label>NSE SYMBOL</label>
+        <input type="text" id="new-h-symbol" placeholder="e.g. RELIANCE" />
+        <div class="quick-chips" id="quick-chips"></div>
+      </div>
+      <div class="form-group">
+        <label>QUANTITY (SHARES)</label>
+        <input type="number" id="new-h-shares" placeholder="e.g. 50" />
+      </div>
+      <div class="form-group">
+        <label>AVG BUY PRICE (₹)</label>
+        <input type="number" id="new-h-price" placeholder="Your purchase price" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cancel-add-holding">Cancel</button>
+        <button class="btn btn-yellow" id="confirm-add-holding">Add Position</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Account -->
+  <div class="overlay" id="modal-add-account">
+    <div class="modal card">
+      <div class="modal-title">New Account</div>
+      <div class="modal-sub">Add a broker or demat account</div>
+      <div class="form-group">
+        <label>BROKER / ACCOUNT NAME</label>
+        <input type="text" id="new-acc-name" placeholder="e.g. Zerodha, Upstox, Angel One" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cancel-add-account">Cancel</button>
+        <button class="btn btn-purple" id="confirm-add-account">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="overlay" id="modal-settings">
+    <div class="modal card modal-wide">
+      <div class="modal-title">⚙ API Settings</div>
+      <div class="modal-sub">Dual-API configuration with automatic fallback</div>
+
+      <div class="api-flow">
+        <span class="flow-chip green">Yahoo Finance</span>
+        <span class="flow-arrow">→ if fails →</span>
+        <span class="flow-chip blue">Alpha Vantage</span>
+        <span class="flow-arrow">→ if fails →</span>
+        <span class="flow-chip grey">Cached Price</span>
+      </div>
+
+      <div class="api-box green-box">
+        <div class="api-box-header">
+          <span class="api-box-name green">📡 Yahoo Finance</span>
+          <span class="badge badge-green">PRIMARY · NO KEY</span>
+        </div>
+        <p>Fetches NSE prices as <strong>SYMBOL.NS</strong> via Yahoo Finance API. No API key needed.</p>
+      </div>
+
+      <div class="api-box blue-box">
+        <div class="api-box-header">
+          <span class="api-box-name blue">🔄 Alpha Vantage</span>
+          <span class="badge badge-blue">FALLBACK · FREE KEY</span>
+        </div>
+        <p>Auto-activates when Yahoo fails. Get a free key at <span class="link-text">alphavantage.co</span></p>
+        <div class="form-group" style="margin-top:10px">
+          <label>ALPHA VANTAGE API KEY</label>
+          <input type="text" id="alpha-key-input" placeholder="Paste your free API key here" />
+          <div class="form-hint">Leave blank to skip Alpha fallback and use cached prices.</div>
+        </div>
+      </div>
+
+      <div class="api-box grey-box">
+        <div class="api-box-header"><span class="api-box-name grey">🔍 Last Fetch — Per Symbol</span></div>
+        <div class="symbol-status-grid" id="symbol-status-grid">
+          <span class="muted-text">Press Refresh to fetch prices</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-yellow" id="settings-refresh">↻ Refresh Now</button>
+        <button class="btn btn-ghost" id="close-settings">Close</button>
+      </div>
+      <div class="danger-zone">
+        <div class="danger-label">⚠ DANGER ZONE</div>
+        <button class="btn btn-clear" id="btn-clear-data">🗑 Clear All Data</button>
+        <div class="danger-hint">This will delete all holdings and accounts permanently.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="DhanTrackJS.js"></script>
+</body>
+</html>
